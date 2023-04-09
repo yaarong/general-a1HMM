@@ -17,7 +17,13 @@ ifstream fin ("test.in");
 ofstream fout ("test.out");
 
 // Emission
-double E[5][4] = {
+// Rows: State
+// Col: Observered
+double E[9][4] = {
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
@@ -25,15 +31,23 @@ double E[5][4] = {
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4}
 };
 // Transmission
-double T[5][5] = {
-    {(double)2/3, (double)1/3, 0, 0, 0},
-    {0, 0, 1, 0, 0},
-    {0, 0, 0, 1, 0},
-    {0, 0, 0, (double)2/3, (double)1/3},
-    {0,0,0,0,(double)2/3}
+// Rows: from state
+// Cols: to state
+double T[9][9] = {
+    {0,1,0,0,0,0,0,0,0},
+    {0,0,1,0,0,0,0,0,0},
+    {0,0,(double)2/3,(double)1/3,0,0,0,0,0},
+    {0,0,0,0,1,0,0,0,0},
+    {0,0,0,0,0,1,0,0,0},
+    {0,0,0,0,0,(double)2/3,(double)1/3,0,0},
+    {0,0,0,0,0,0,0,1,0},
+    {0,0,0,0,0,0,0,0,1},
+    {0,0,0,0,0,0,0,0,1}
 };
     
 // iNfluence probabilities
+// Rows: influencing observation
+// Cols: influenced observation
 double N[4][4] = {
     {(double)1/10, (double)1/10, (double)1/10, (double)7/10},
     {(double)1/10, (double)1/10, (double)7/10, (double)1/10},
@@ -41,17 +55,23 @@ double N[4][4] = {
     {(double)7/10, (double)1/10, (double)1/10, (double)1/10}
 };
 
-
+// Probability of starting with each state
+// dim1: state
+double startProb[9] = {1,0,0,0,0,0,0,0,0};
 
 // Which states influence which states
-// Dim1: influencing
-// dim2: influenced
-bool allowedInfs[5][5]{
-    {0,0,0,0,1},
-    {0,0,0,0,0},
-    {0,0,0,0,0},
-    {0,0,0,0,0},
-    {0,0,0,0,0}
+// Rows: influencing state
+// Cols: influenced state
+bool allowedInfs[9][9]{
+    {0,0,0, 0,0,0, 0,0,1},
+    {0,0,0, 0,0,0, 0,1,0},
+    {0,0,0, 0,0,0, 1,0,0},
+    {0,0,0, 0,0,0, 0,0,0},
+    {0,0,0, 0,0,0, 0,0,0},
+    {0,0,0, 0,0,0, 0,0,0},
+    {0,0,0, 0,0,0, 0,0,0},
+    {0,0,0, 0,0,0, 0,0,0},
+    {0,0,0, 0,0,0, 0,0,0}
 };
 
 // A : 0
@@ -60,7 +80,7 @@ bool allowedInfs[5][5]{
 // U : 3
 vector<int> O{0,0,0,1,3,3,3,3,3,1,1,1,0,0,2,2,2};
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"L", "X", "Y", "M", "R"};
+vector<string> stateKey{"L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1"};
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
@@ -101,8 +121,12 @@ int main(){
 
     // step, state, influence, influenceChoice
     tuple<int, int, int, int> choice[numSteps + 1][numStates][numSteps + 1][2];
-    m[1][0][1][1] = E[0][O[1]];
-    I[1][0][1][1] = blank;
+
+    for (int i = 0; i < numStates; i++){
+        reverse(stateKey[i].begin(), stateKey[i].end());
+        m[1][i][1][1] = E[0][O[1]] * startProb[i];
+        I[1][i][1][1] = blank;
+    }    
 
     // Current step
     for (int j = 2; j < numSteps + 1; j++){
