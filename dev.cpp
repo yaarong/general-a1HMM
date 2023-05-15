@@ -31,6 +31,7 @@ double E[10][4] = {
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4}
 };
+
 // Transmission
 // Rows: from state
 // Cols: to state
@@ -57,11 +58,6 @@ double N[4][4] = {
     {(double)7/10, (double)1/10, (double)1/10, (double)1/10}
 };
 
-// Probability of starting with each state
-// dim1: state
-double startProb[10] = {(double)1/2,0,0,0,0,0,0,0,0,(double)1/2};
-bool endState[10] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
-
 // Which states influence which states
 // Rows: influencing state
 // Cols: influenced state
@@ -78,18 +74,24 @@ bool allowedInfs[10][10]{
     {0,0,0, 0,0,0, 0,0,0,  0}
 };
 
+// Probability of starting with each state
+double startProb[10] = {(double)1/2,0,0,0,0,0,0,0,0,(double)1/2};
+
+// Which end-states are allowed (1 is allowed, 0 is disallowed)
+bool endState[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+vector<string> observationKey{"A", "C", "G", "U"};
+vector<string> stateKey{"L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1", "A"};
+
 // A : 0
 // C : 1
 // G : 2
 // U : 3
-vector<int> O{2,2,0,0,0,2,2,2,3,3,3,2,2};
-vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1", "A"};
+
+vector<int> O{1,1,1,0,0,0,0,2,2,2,2};
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
-
-// j, r, l, cc
 
 bool validInf(vector<vector<vector<int>>> &influence, int ingState, int edState, int ingStep, int edStep){
     vector<int> path = influence[ingState][edState];
@@ -127,7 +129,7 @@ int main(){
     tuple<int, int, int, int> choice[numSteps + 1][numStates][numSteps + 1][2];
 
     for (int i = 0; i < numStates; i++){
-        reverse(stateKey[i].begin(), stateKey[i].end());
+        //reverse(stateKey[i].begin(), stateKey[i].end());
         m[1][i][1][1] = E[0][O[1]] * startProb[i];
         I[1][i][1][1] = blank;
     }    
@@ -250,11 +252,14 @@ int main(){
     }
 
     double maxprob = 0;
-    string path = "";
+    string path[numSteps];
     string og(numSteps, '*');
     string influences = og;
     tuple<int, int, int, int> next_path;
     int j = numSteps;
+
+    int longest = 0;
+
     for (int r = 0; r < numStates; r++){
         for (int l = 1; l <= j; l++){
             for (int c = 0; c < 2; c++){
@@ -267,7 +272,8 @@ int main(){
                         influences[l-1] = '(';
                     }
                     
-                    path = stateKey[r];
+                    path[j-1] = stateKey[r];
+                    longest = stateKey[r].length();
                     
                     //cout << j << " " << r << " "<< l << " " << c << "\n";
                     //cout << get<3>(next_path) << "\n";
@@ -286,14 +292,35 @@ int main(){
             influences[j-1] = ')';
             influences[l-1] = '(';
         }
-        path += stateKey[r];
+        path[j-1]= stateKey[r];
+        longest = max(longest, (int)stateKey[r].length());
         next_path = choice[j][r][l][c];
         
     }
-    reverse(path.begin(), path.end());
+    //reverse(path.begin(), path.end());
     string actualO = "";
     for (auto x : O){
-        actualO+= observationKey[x];
+        longest = max(longest, x);
     }
-    cout << actualO << "\n" <<path << "\n" << influences;
+    for (auto x : O){
+        actualO+= observationKey[x];
+        for (int j = 0; j < longest - observationKey[x].length() + 1; j++){
+            actualO += " ";
+        }
+    }
+    cout << actualO << "\n";
+
+    for (int i = 0; i < numSteps; i++){
+        cout << path[i];
+        for (int j = 0; j < longest - path[i].length() + 1; j++){
+            cout << " ";
+        }
+    }
+    cout << "\n";
+    for (int i = 0; i < influences.length(); i++){
+        cout << influences[i];
+        for (int j = 0; j < longest; j++){
+            cout << " ";
+        }
+    }
 }
