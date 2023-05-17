@@ -19,7 +19,8 @@ ofstream fout ("test.out");
 // Emission
 // Rows: State
 // Col: Observered
-double E[10][4] = {
+double E[11][4] = {
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
@@ -35,17 +36,19 @@ double E[10][4] = {
 // Transmission
 // Rows: from state
 // Cols: to state
-double T[10][10] = {
-    {0,1,0,0,0,0,0,0,0,0},
-    {0,0,1,0,0,0,0,0,0,0},
-    {0,0,(double)2/3,(double)1/3,0,0,0,0,0,0},
-    {0,0,0,0,1,0,0,0,0,0},
-    {0,0,0,0,0,1,0,0,0,0},
-    {0,0,0,0,0,(double)2/3,(double)1/3,0,0,0},
-    {0,0,0,0,0,0,(double)2/3,(double)1/3,0,0},
-    {0,0,0,0,0,0,0,0,1,0},
-    {0,0,0,0,0,0,0,0,1,0},
-    {0,0,0,0,0,0,0,0,0,(double)7/8},
+double T[11][11] = {
+    {(double)1/5, (double)4/5, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+    {(double)1/5, (double)1/5, 0, (double)1/5, (double)2/5, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, (double)4/5, (double)1/5, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, (double)1/5, (double)4/5, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+    {0, 0, 0, 0, 0, 0, 0, (double)1/5, 0, 0, (double)4/5},
+    {0, 0, 0, 0, 0, 0, 0, (double)1/5, 0, 0, (double)4/5},
+//   b  l1 l2 l3 m1 m2 m3 r3 r2 r1 e
 };
     
 // iNfluence probabilities
@@ -61,34 +64,34 @@ double N[4][4] = {
 // Which states influence which states
 // Rows: influencing state
 // Cols: influenced state
-bool allowedInfs[10][10]{
-    {0,0,0, 0,0,0, 0,0,1,  0},
-    {0,0,0, 0,0,0, 0,1,0,  0},
-    {0,0,0, 0,0,0, 1,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0},
-    {0,0,0, 0,0,0, 0,0,0,  0}
+bool allowedInfs[11][11]{
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,1, 0},
+    {0, 0,0,0, 0,0,0, 0,1,0, 0},
+    {0, 0,0,0, 0,0,0, 1,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
+    {0, 0,0,0, 0,0,0, 0,0,0, 0},
 };
 
 // Probability of starting with each state
-double startProb[10] = {(double)1/2,0,0,0,0,0,0,0,0,(double)1/2};
+double startProb[11] = {0,1,0,0,0,0,0,0,0,0,0};
 
 // Which end-states are allowed (1 is allowed, 0 is disallowed)
-bool endState[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+bool endState[11] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
 
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1", "A"};
+vector<string> stateKey{"B", "L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1", "E"};
 
 // A : 0
 // C : 1
 // G : 2
 // U : 3
-
-vector<int> O{1,1,1,0,0,0,0,2,2,2,2};
+vector<int> O{0,0,0,1,1,1,3,3,3};
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
@@ -298,9 +301,11 @@ int main(){
         
     }
     //reverse(path.begin(), path.end());
+        cout << longest << "\n";
+
     string actualO = "";
-    for (auto x : O){
-        longest = max(longest, x);
+    for (auto x : observationKey){
+        longest = max(longest, (int)x.length());
     }
     for (auto x : O){
         actualO+= observationKey[x];
