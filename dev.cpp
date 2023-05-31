@@ -15,7 +15,6 @@
 using namespace std;
 ifstream fin ("test.in");
 ofstream fout ("test.out");
-
 // Emission
 // Rows: State
 // Col: Observered
@@ -91,7 +90,9 @@ vector<string> stateKey{"B", "L1", "L2", "L3", "M1", "M2", "M3", "R3", "R2", "R1
 // C : 1
 // G : 2
 // U : 3
-vector<int> O{0,0,0,1,1,1,3,3,3};
+
+vector<int> O{0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 2, 2, 2, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 0, 0, 0, 3, 3, 3};
+
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
@@ -117,6 +118,17 @@ bool validInf(vector<vector<vector<int>>> &influence, int ingState, int edState,
 
 
 int main(){
+    
+    bool influenceable[numStates];
+    memset(influenceable, 0, numStates);
+    for (int i =0; i < numStates; i++){
+        for (int j = 0; j < numStates; j++){
+            if (allowedInfs[i][j]){
+                influenceable[j] = true;
+            }
+        }
+    }
+   
 
     // probabilities
     // current step, current state, influencing step, choice (actual influence or fake influence)
@@ -152,6 +164,7 @@ int main(){
                         for (int cc = 0; cc <=1; cc++){
                             // previous condition
                             for (int cp = 0; cp <= 1; cp++){
+                                
                                 //cout << j << " " << r << " " << l <<" " << q << " " << k << " " << cc <<" " << cp << "\n";
                                 //cout << cc;
                                 double prev = m[j-1][q][k][cp] * T[q][r];
@@ -222,6 +235,7 @@ int main(){
                                 } 
                                 if (// p:influence, c:none
                                     (cc == 1 && cp == 0) && 
+                                    (!influenceable[r]) &&
                                     (k < l) && 
                                     ((prev * E[r][O[j]]) > prob)
                                 ){
@@ -231,6 +245,7 @@ int main(){
 
                                 if (// p:none, c:none
                                     (cc == 1 && cp == 1) && 
+                                    (!influenceable[r]) &&
                                     ((k == l && r == q) || (l == j && r != q)) && 
                                     ((prev * E[r][O[j]]) > prob)
                                 ){
@@ -300,8 +315,6 @@ int main(){
         next_path = choice[j][r][l][c];
         
     }
-    //reverse(path.begin(), path.end());
-        cout << longest << "\n";
 
     string actualO = "";
     for (auto x : observationKey){
