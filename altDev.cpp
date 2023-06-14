@@ -18,7 +18,9 @@ ofstream fout ("test.out");
 // Emission
 // Rows: State
 // Col: Observered
-double E[2][4] = {
+double E[4][4] = {
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
 };
@@ -26,44 +28,50 @@ double E[2][4] = {
 // Transmission
 // Rows: from state
 // Cols: to state
-double T[2][2] = {
-    {(double)1/2, (double)1/2},
-    {(double)1/2, (double)1/2},
+double T[4][4] = {
+    {(double)1/2, (double)1/2, 0, 0},
+    {0, 0, 1 ,0},
+    {0, 0, 0, 1},
+    {(double)1/2, 0, 0 ,(double)1/2},
 };
     
 // iNfluence probabilities
 // Rows: influencing observation
 // Cols: influenced observation
 double N[4][4] = {
-    {(double)1/10, (double)1/10, (double)1/10, (double)7/10},
-    {(double)1/10, (double)1/10, (double)7/10, (double)1/10},
-    {(double)1/10, (double)7/10, (double)1/10, (double)1/10},
-    {(double)7/10, (double)1/10, (double)1/10, (double)1/10}    
+    {(double)0/10, (double)0/10, (double)0/10, (double)7/10},
+    {(double)0/10, (double)0/10, (double)7/10, (double)0/10},
+    {(double)0/10, (double)7/10, (double)0/10, (double)0/10},
+    {(double)7/10, (double)0/10, (double)0/10, (double)0/10}    
 };
 
 // Which states influence which states
 // Rows: influencing state
 // Cols: influenced state
-bool allowedInfs[2][2]{
-    {0,1},
-    {0,0}
+bool allowedInfs[4][4]{
+    {0, 1, 1, 1},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0}
 };
 
 // Probability of starting with each state
-double startProb[2] = {1,0};
+double startProb[4] = {1, 0, 0, 0};
 
 // Which end-states are allowed (1 is allowed, 0 is disallowed)
-bool endState[2] = {1, 1};
+bool endState[4] = {1, 1, 1, 1};
 
+// State "types"
+int type[4] = {0,1,1,1};
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"S", "P"};
+vector<string> stateKey{"S", "X", "Y", "Z"};
 
 // A : 0
 // C : 1
 // G : 2
 // U : 3
 
-vector<int> O{1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3, 3, 3, 1, 1, 0, 0, 0, 1, 1, 1, 1, 3, 3, 3, 1};
+vector<int> O{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 3, 3, 3, 2, 2, 2, 2, 2, 2};
 
 
 const int numStates = sizeof(T)/sizeof(T[0]);
@@ -146,7 +154,9 @@ int main(){
                         for (int cc = 0; cc <=1; cc++){
                             // previous condition
                             for (int cp = 0; cp <= 1; cp++){
-                                
+                                if (type[r] == type[q] && k != l+1 && cc == 0 && cp == 0){
+                                    continue;
+                                }
                                 //curUnused[r].push(j);
                                 //cout << j << " " << r << " " << l <<" " << q << " " << k << " " << cc <<" " << cp << "\n";
                                 //cout << cc;
@@ -299,7 +309,7 @@ int main(){
                     path[j-1] = stateKey[r];
                     longest = stateKey[r].length();
                     
-                    cout << j << " " << r << " "<< l << " " << c << ": " << m[j][r][l][c] << "\n";
+                    //cout << j << " " << r << " "<< l << " " << c << ": " << m[j][r][l][c] << "\n";
                     //cout << get<3>(next_path) << "\n";
                 }
             }
