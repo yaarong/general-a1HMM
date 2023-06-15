@@ -32,7 +32,7 @@ double T[4][4] = {
     {(double)1/2, (double)1/2, 0, 0},
     {0, 0, 1 ,0},
     {0, 0, 0, 1},
-    {(double)1/2, 0, 0 ,(double)1/2},
+    {(double)1/2, (double)1/4, 0 ,(double)1/4},
 };
     
 // iNfluence probabilities
@@ -61,8 +61,17 @@ double startProb[4] = {1, 0, 0, 0};
 // Which end-states are allowed (1 is allowed, 0 is disallowed)
 bool endState[4] = {1, 1, 1, 1};
 
+// Affiliations
+// Row # is affiliated with col #
+bool aff[4][4] = {
+    {1, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 1, 0, 0},
+    {0, 0, 1, 1}
+};
+
 // State "types"
-int type[4] = {0,1,1,1};
+int type[4] = {0,1,2,3};
 vector<string> observationKey{"A", "C", "G", "U"};
 vector<string> stateKey{"S", "X", "Y", "Z"};
 
@@ -71,7 +80,7 @@ vector<string> stateKey{"S", "X", "Y", "Z"};
 // G : 2
 // U : 3
 
-vector<int> O{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 3, 3, 3, 2, 2, 2, 2, 2, 2};
+vector<int> O{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 2, 2, 2, 2};
 
 
 const int numStates = sizeof(T)/sizeof(T[0]);
@@ -154,7 +163,7 @@ int main(){
                         for (int cc = 0; cc <=1; cc++){
                             // previous condition
                             for (int cp = 0; cp <= 1; cp++){
-                                if (type[r] == type[q] && k != l+1 && cc == 0 && cp == 0){
+                                if ((aff[r][q] && k != l+1 && cc == 0 && cp == 0)){
                                     continue;
                                 }
                                 //curUnused[r].push(j);
@@ -270,8 +279,7 @@ int main(){
                                 }
 
                                 
-                                if (j == 16 && r == 1 && cc==0 && l == 4){
-
+                                if (j == 34 && r == 3 && cc==0 && l == 19){
                                     //cout << "(" << j << " " << stateKey[r] << " " << l << " " << cc << ") " << "(" << j-1 << " " << stateKey[q] << " " << k << " " << cp << ") " << prob << " " << m[j-1][q][k][cp] << "\n"; 
                                 }
 
@@ -294,9 +302,8 @@ int main(){
     int longest = 0;
 
     for (int r = 0; r < numStates; r++){
-        for (int l = 1; l <= j; l++){
+        for (int l = j; l >0; l--){
             for (int c = 0; c < 2; c++){
-
                 if (m[j][r][l][c] > maxprob && endState[r]){
                     maxprob = m[j][r][l][c];
                     next_path = choice[j][r][l][c];
@@ -309,7 +316,7 @@ int main(){
                     path[j-1] = stateKey[r];
                     longest = stateKey[r].length();
                     
-                    //cout << j << " " << r << " "<< l << " " << c << ": " << m[j][r][l][c] << "\n";
+                    cout << j << " " << r << " "<< l << " " << c << ": " << m[j][r][l][c] << "\n";
                     //cout << get<3>(next_path) << "\n";
                 }
             }
