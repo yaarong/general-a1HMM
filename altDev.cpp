@@ -28,19 +28,20 @@ double E[3][4] = {
 // Rows: from state
 // Cols: to state
 double T[3][3] = {
-    {(double)1/3, (double)1/3, (double)1/3},
-    {(double)1/3, (double)1/3, (double)1/3},
-    {(double)1/3, (double)1/3, (double)1/3}
+    {0.99, 0.01, 0},
+    {0.2, 0.79, 0.01},
+    {0.2, 0.01, 0.79}
 };
     
 // iNfluence probabilities
 // Rows: influencing observation
 // Cols: influenced observation
+//  acgu
 double N[4][4] = {
-    {(double)0/10, (double)0/10, (double)0/10, (double)7/10},
-    {(double)0/10, (double)0/10, (double)7/10, (double)0/10},
-    {(double)0/10, (double)7/10, (double)0/10, (double)0/10},
-    {(double)7/10, (double)0/10, (double)0/10, (double)0/10}    
+    {0,     0,      0,      1},
+    {0,     0,      1,      0},
+    {0,     0.76,   0,      0.24},
+    {0.67,  0,      0.33,   0},
 };
 
 // Which states influence which states
@@ -67,16 +68,16 @@ bool aff[3][3] = {
 };
 
 // State "types"
-int type[3] = {0,1,1};
+int type[3] = {0,1,2};
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"S", "P", "Q", "Z"};
+vector<string> stateKey{"S", "P", "Q"};
 
 // A : 0
 // C : 1
 // G : 2
 // U : 3
 
-vector<int> O{1, 2, 2, 2, 1, 2, 2, 2, 1, 0, 0, 1, 1, 1, 1, 3, 3, 3, 2, 0, 2, 0, 0, 0, 1, 1, 1, 1};
+vector<int> O{1, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1};
 
 
 const int numStates = sizeof(T)/sizeof(T[0]);
@@ -88,17 +89,26 @@ bool validInf(vector<vector<vector<int>>> &influence, int ingState, int edState,
     if (!allowedInfs[ingState][edState]){
         return false;
     }
+    /*
     for (int i = ingStep; i < edStep; i++){
         total += path[i];
         if (total < 0){
             //cout << "false";
             return false;
         }
+    }*/
+    bool used = false;
+    for (int i = 0; i < numStates; i++){
+        for (int j = 0; j < numStates; j++){
+            if (influence[i][j][ingStep] == 1){
+                used = true;
+                break;
+            }
+        }
     }
-
     //cout << path.size() << " " << ingStep << "\n";
 
-    return (total == 0) && (path[ingStep] != 1);
+    return (total == 0) && (!used);
 }
 
 
@@ -317,8 +327,14 @@ int main(){
         int l = get<2>(next_path);
         int c = get<3>(next_path);
         if (c == 0){
-            influences[j-1] = ')';
-            influences[l-1] = '(';
+            if (r == 1){
+                influences[j-1] = ')';
+                influences[l-1] = '(';
+            } else {
+                influences[j-1] = '}';
+                influences[l-1] = '{';
+            }
+            
         }
         path[j-1]= stateKey[r];
         longest = max(longest, (int)stateKey[r].length());
@@ -326,10 +342,12 @@ int main(){
         
     }
 
+
     string actualO = "";
     for (auto x : observationKey){
         longest = max(longest, (int)x.length());
     }
+    longest = 0;
     for (auto x : O){
         actualO+= observationKey[x];
         for (int j = 0; j < longest - observationKey[x].length() + 1; j++){
