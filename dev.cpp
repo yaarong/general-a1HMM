@@ -25,89 +25,129 @@ double E[7][4] = {
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
-    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
+    {(double)1/4, (double)1/4, (double)1/4, (double)1/4}
 };
 
 // Transmission
 // Rows: from state
 // Cols: to state
+const double e1 = 0.017;
+const double e2 = 0.077;
+const double a = 0.2;
 double T[7][7] = {
-    {(double)1/4, (double)3/4, 0, 0, 0, 0, 0},
-    {(double)1/8, (double)3/4, (double)1/8, 0, 0, 0, 0},
-    {0, 0, 0, 1, 0, 0, 0},
-    {0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 0, 0, (double)3/4, (double)1/4, 0},
-    {0, 0, 0, 0, 0, (double)3/4, (double)1/4},
-    {0, 0, 0, 0, 0, (double)1/2, (double)1/2}
+   {1-e1-e2,e1,     0,      0,      e2,     0,      0},
+   {0,      0,      1,      0,      0,      0,      0}, 
+   {0,      0,      0,      1,      0,      0,      0},
+   {0,      e1,     0,      1-e1-e2,e2,     0,      0},
+   {0,      0,      0,      0,      0,      1,      0},
+   {0,      0,      0,      0,      0,      0,      1},
+   {a,      0,      0,      0,      0,      0,      1-a},
 };
+/*
+double T[7][7] = {
+   {0.923,  0.017,  0,      0,      0.06,   0,      0},
+   {0,      0,      1,      0,      0,      0,      0}, 
+   {0,      0,      0,      1,      0,      0,      0},
+   {0,      0.017,  0,      0.923,  0.06,   0,      0},
+   {0,      0,      0,      0,      0,      1,      0},
+   {0,      0,      0,      0,      0,      0,      1},
+   {0.5,    0,      0,      0,      0,      0,      0.5},
+};*/
     
 // iNfluence probabilities
 // Rows: influencing observation
 // Cols: influenced observation
+// Order: ACGU
 double N[4][4] = {
-    {0, 0, 0, (double)7/10},
-    {0, 0, (double)7/10, 0},
-    {0, (double)7/10, 0, 0},
-    {(double)7/10, 0, 0, 0}
+    {0.008, 0.008,  0.008,  0.72},
+    {0.008, 0.008,  0.96,   0.008},
+    {0.008, .96,    0.008,  0.28},
+    {0.72,  0.008,  0.28,   0.008},
 };
 
 // Which states influence which states
 // Rows: influencing state
 // Cols: influenced state
 bool allowedInfs[7][7]{
-    {0, 0, 0,0,0, 0, 0},
-    {0, 0, 0,0,0, 1, 0},
-    {0, 0, 0,0,0, 0, 0},
-    {0, 0, 0,0,0, 0, 0},
-    {0, 0, 0,0,0, 0, 0},
-    {0, 0, 0,0,0, 0, 0},
-    {0, 0, 0,0,0, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1},
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0}
 };
 
 // Probability of starting with each state
-double startProb[7] = {1, 1, 1,1,1, 1, 1};
+double startProb[7] = {1, 0, 0, 0, 0, 0, 0};
 
 // Which end-states are allowed (1 is allowed, 0 is disallowed)
-bool endState[7] = {1, 1, 1, 1, 1, 1, 1};
+bool endState[7] = {1, 0, 0, 1, 0, 0, 1};
+
+// Affiliations
+// Row # is affiliated with col #
+bool aff[7][7] = {
+    {0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0}, 
+    {0, 1, 0, 0, 0, 0, 0}, 
+    {0, 0, 1, 1, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 1, 0, 0}, 
+    {0, 0, 0, 0, 0, 1, 1}  
+};
 
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"B", "L", "M1", "M2", "M3", "R", "E"};
+vector<string> stateKey{"S", "Q1", "Q2", "Q3", "P1", "P2", "P3"};
 
 // A : 0
 // C : 1
 // G : 2
 // U : 3
-
-vector<int> O{0, 0, 0, 1, 0, 0, 0,0, 1, 1, 1, 3,3,3,3,  1,3, 3, 3};
-
+vector<int> O{1,1,1,0,1,1,1,0,0,0,0,2,2,2,2,2,2};
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
 
 bool validInf(vector<vector<vector<int>>> &influence, int ingState, int edState, int ingStep, int edStep){
-    vector<int> path = influence[ingState][edState];
-    int total = 0;
+     // Get current influence path
+    // Contains which steps are influencing or influenced 
+    vector<int> path = influence[type[ingState]][type[edState]];
+
+    // Check if influenced is allowed. If not, return false.
     if (!allowedInfs[ingState][edState]){
         return false;
     }
+    int total = 0;
+    // Optional check for overlapping influences. 
+    /*
+    int total = 0;
     for (int i = ingStep; i < edStep; i++){
         total += path[i];
         if (total < 0){
             //cout << "false";
             return false;
         }
+    }*/
+
+    // Check if step is already influencing some laterstep
+    bool used = false;
+    for (int i = 0; i < numStates; i++){
+        for (int j = 0; j < numStates; j++){
+            if (influence[i][j][ingStep] == 1){
+                used = true;
+                break;
+            }
+        }
     }
-
-    //cout << path.size() << " " << ingStep << "\n";
-
-    return (total == 0) && (path[ingStep] != 1);
+    return (total == 0) && (!used);
 }
 
 
 int main(){
-    
+
+    // Creates array to store which states are influenceable. If influence is possible, the influence will always be chosen.
+    // aka enforcing influences
     bool influenceable[numStates];
-    memset(influenceable, 0, numStates);
     for (int i =0; i < numStates; i++){
         for (int j = 0; j < numStates; j++){
             if (allowedInfs[i][j]){
@@ -115,12 +155,18 @@ int main(){
             }
         }
     }
-   
 
     // probabilities
     // current step, current state, influencing step, choice (actual influence or fake influence)
     double m[numSteps+1][numStates][numSteps+1][2];
-    memset(m, 0, sizeof(m)); 
+    for (int i = 0; i < numSteps+1; i++){
+        for (int j = 0; j < numStates; j++){
+            for (int k = 0; k < numSteps+1; k++){
+                m[i][j][k][0] = 0;
+                m[i][j][k][1] = 0;
+            }
+        }
+    }
 
     // Influence matrix 
     // ([current Step] [current state] [influence step] [choice]) ([influencing state][influenced state][step]) = {1 if influencing, -1 if influenced, 0 otherwise}
@@ -130,53 +176,46 @@ int main(){
     // step, state, influence, influenceChoice
     tuple<int, int, int, int> choice[numSteps + 1][numStates][numSteps + 1][2];
 
-
-    // [current step][current state][influencing step][choice][state to check])
-    vector<priority_queue<int>> unused[numSteps + 1][numStates][numSteps+1][2];
-
+    // Initial probabilities
     for (int i = 0; i < numStates; i++){
-        //reverse(stateKey[i].begin(), stateKey[i].end());
         m[1][i][1][1] = E[0][O[1]] * startProb[i];
         I[1][i][1][1] = blank;
-        for (int j = 0; j < numStates; j++){
-            priority_queue<int> temp;
-            unused[1][i][1][1].push_back(temp);
-            unused[1][i][1][1][j].push(1);
-        }
-    }    
+    }   
 
     // Current step
     for (int j = 2; j < numSteps + 1; j++){
         // Current state
         for (int r = 0; r < numStates; r++){
             //Current influencing step
-            for (int l = 1; l <= j; l++){
+            for (int l = j; l > 0; l--){
                 // Previous step = j-1
                 // Previous state
                 for (int q = 0; q < numStates; q++){
                     // previous influence
-                    for (int k = 1; k <= j-1; k++){
+                    for (int k = j-1; k > 0; k--){
                         //current condition
                         for (int cc = 0; cc <=1; cc++){
                             // previous condition
                             for (int cp = 0; cp <= 1; cp++){
-                                
-                                //curUnused[r].push(j);
-                                //cout << j << " " << r << " " << l <<" " << q << " " << k << " " << cc <<" " << cp << "\n";
-                                //cout << cc;
+                                // Check for affinity rules 
+                                if (aff[r][q] && k != l+1 && cc == 0 && cp == 0){
+                                    continue;
+                                }
+
+                                // previous probability and current calculated probability (0 at first)
                                 double prev = m[j-1][q][k][cp] * T[q][r];
                                 double prob = 0;
 
+                                // Skip if last step was impossible
                                 if (prev == 0){
                                     continue;
                                 }
-                                vector<priority_queue<int>> curUnused = unused[j-1][q][k][cp];
                                 
+                                // Set current influence matrix to the previous one
                                 vector<vector<vector<int>>> lastInf = I[j-1][q][k][cp];
-                                //influence 
                                 vector<vector<vector<int>>> curInf = lastInf; 
 
-                                // Get influcing state
+                                // Get influencing state
                                 // step, state, influence, choice
                                 tuple<int, int, int, int> next_step = make_tuple(j-1, q, k, cp);
                                 vector<bool> betweenStates(numStates, 0);
@@ -191,58 +230,34 @@ int main(){
 
                                 bool noBetween = true;
                                 
-                                if (curUnused[ingState].empty() || curUnused[ingState].top() != l){
-                                    noBetween = false;
-                                }
-
-                                /*
-                                // traceback again to chceck
-                                next_step = make_tuple(j-1, q, k, cp);
-                                while (get<0>(next_step) > l){
-                                    if ((get<1>(next_step) == ingState || get<1>(next_step) == r) && lastInf.size() > 0 &&
-                                        curInf[ingState][r][get<0>(next_step)] == 0
-                                    ){
-                                        noBetween = false;
-                                        break;
-                                    }  
-                                    next_step = choice[get<0>(next_step)][get<1>(next_step)][get<2>(next_step)][get<3>(next_step)];
-                                }*/
-
-
-                                
-
-                                
                                 if (// p:influence, c:influence
                                     (cc == 0 && cp == 0) && 
-                                    //(r == 2) &&
                                     //((q == r && k == l+1) || (q != r)) && 
                                     ((prev * N[O[l-1]][O[j-1]]) > prob) &&
-                                    //(validInf(lastInf, ingState, r, l, j)) &&
+                                    (validInf(lastInf, ingState, r, l, j)) &&
                                     noBetween && 
                                     allowedInfs[ingState][r] && 
+                                    (l < j-4) &&
                                     (lastInf[ingState][r][l] != 1)
                                 ){  
                                     curInf[ingState][r][j] = -1;
                                     curInf[ingState][r][l] = 1;
                                     prob = prev * N[O[l-1]][O[j-1]];
-                                    curUnused[ingState].pop();
-                                    //cout << "m(" << j <<  ", " << r <<  ", "<<  l << "): 0,0 -----"<<prob<<"\n"; 
                                 }
                                 if (// p:none, c:influence
                                     (cc == 0 && cp == 1) && 
                                     //(r == 2) &&
                                     //((l == j-1) || (l < k)) && 
                                     ((prev * N[O[l-1]][O[j-1]]) > prob) &&
-                                    //(validInf(lastInf, ingState, r, l, j)) &&
+                                    (validInf(lastInf, ingState, r, l, j)) &&
                                     noBetween && 
                                     allowedInfs[ingState][r]&& 
+                                    (l < j-4) &&
                                     (lastInf[ingState][r][l] != 1)
                                 ){
                                     curInf = lastInf;
                                     curInf[ingState][r][j] = -1;
                                     curInf[ingState][r][l] = 1;
-                                    curUnused[ingState].pop();
-                                    //cout << "m(" << j <<  ", " << r <<  ", "<<  l << "): 0,1-----"<<prob<<"\n"; 
                                     prob = prev * N[O[l-1]][O[j-1]];
                                 } 
                                 if (// p:influence, c:none
@@ -251,7 +266,6 @@ int main(){
                                     (k < l) && 
                                     ((prev * E[r][O[j]]) > prob)
                                 ){
-                                    //cout << "m(" << j <<  ", " << r <<  ", "<<  l << "): 1,0-----"<<prob<<"\n"; 
                                     prob = prev * E[r][O[j]];
                                 }
 
@@ -261,26 +275,18 @@ int main(){
                                     ((k == l && r == q) || (l == j && r != q)) && 
                                     ((prev * E[r][O[j]]) > prob)
                                 ){
-                                    //cout << "m(" << j <<  ", " << r <<  ", "<<  l << "): 1,1-----"<<prob<<"\n"; 
                                     prob = prev * E[r][O[j]];
 
                                 }
-                                curUnused[r].push(j);
+                                //curUnused[r].push(j);
                                 if (prob > m[j][r][l][cc]){
+                                    
                                     m[j][r][l][cc] = prob;
                                     choice[j][r][l][cc] = make_tuple(j-1, q, k, cp);
                                     I[j][r][l][cc] = curInf;
-                                    unused[j][r][l][cc] = curUnused;
                                 }
-
-                                /*
-                                if (j == 4 && r == 3 && cc==1 && prob != 0){
-
-                                    cout << "(" << j << " " << stateKey[r] << " " << l << " " << cc << ") " << "(" << j-1 << " " << stateKey[q] << " " << k << " " << cp << ") " << prob << " " << m[j-1][q][k][cp] << "\n"; 
-                                }*/
-
+                                
                             }
-                        
                         }
                     }
                 }
@@ -288,33 +294,36 @@ int main(){
         }
     }
 
+    // current highest probability
     double maxprob = 0;
+
+    // Creating output strings
     string path[numSteps];
     string og(numSteps, '*');
     string influences = og;
+
+    // Find highest probabilit end state
     tuple<int, int, int, int> next_path;
     int j = numSteps;
-
     int longest = 0;
 
     for (int r = 0; r < numStates; r++){
-        for (int l = 1; l <= j; l++){
+        for (int l = j; l >0; l--){
             for (int c = 0; c < 2; c++){
-
                 if (m[j][r][l][c] > maxprob && endState[r]){
                     maxprob = m[j][r][l][c];
                     next_path = choice[j][r][l][c];
                     influences = og;
-                    if (c == 0){
+                    if (r == 1 || r == 2 || r == 3){
                         influences[j-1] = ')';
                         influences[l-1] = '(';
+                    } else if (r != 0){
+                        influences[j-1] = '}';
+                        influences[l-1] = '{';
                     }
                     
                     path[j-1] = stateKey[r];
                     longest = stateKey[r].length();
-                    
-                    cout << j << " " << r << " "<< l << " " << c << ": " << m[j][r][l][c] << "\n";
-                    //cout << get<3>(next_path) << "\n";
                 }
             }
         }
@@ -322,24 +331,35 @@ int main(){
     //iPath = I[][][][]
     // ([current Step] [current state] [influence step] [influence/no influence]) ([influencing state][influenced state][step]) = {1 if influcing, -1 if influenced, 0 otherwise}
 
+    // traceback to find full path
     for (int j = numSteps-1; j > 0; j--){
         int r = get<1>(next_path);
         int l = get<2>(next_path);
         int c = get<3>(next_path);
         if (c == 0){
-            influences[j-1] = ')';
-            influences[l-1] = '(';
+            if (r == 1 || r == 2 || r == 3){
+                influences[j-1] = ')';
+                influences[l-1] = '(';
+            } else if (r != 0){
+                influences[j-1] = '}';
+                influences[l-1] = '{';
+            }
+            
         }
         path[j-1]= stateKey[r];
+        cout << j << " " << r << " "<< l << " " << c << "\n";
         longest = max(longest, (int)stateKey[r].length());
         next_path = choice[j][r][l][c];
         
     }
 
+
+    // Format output
     string actualO = "";
     for (auto x : observationKey){
         longest = max(longest, (int)x.length());
     }
+
     for (auto x : O){
         actualO+= observationKey[x];
         for (int j = 0; j < longest - observationKey[x].length() + 1; j++){
