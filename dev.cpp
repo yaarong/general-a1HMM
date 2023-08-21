@@ -18,30 +18,23 @@ ofstream fout ("test.out");
 // Emission
 // Rows: State
 // Col: Observered
-double E[7][4] = {
+double E[3][4] = {
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
     {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
-    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
-    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
-    {(double)1/4, (double)1/4, (double)1/4, (double)1/4},
-    {(double)1/4, (double)1/4, (double)1/4, (double)1/4}
 };
 
 // Transmission
 // Rows: from state
 // Cols: to state
-const double e1 = 0.017;
-const double e2 = 0.077;
-const double a = 0.2;
-double T[7][7] = {
-   {1-e1-e2,e1,     0,      0,      e2,     0,      0},
-   {0,      0,      1,      0,      0,      0,      0}, 
-   {0,      0,      0,      1,      0,      0,      0},
-   {0,      e1,     0,      1-e1-e2,e2,     0,      0},
-   {0,      0,      0,      0,      0,      1,      0},
-   {0,      0,      0,      0,      0,      0,      1},
-   {a,      0,      0,      0,      0,      0,      1-a},
+const double delta = 0.18;
+const double alpha = 0.77;
+const double beta = delta;
+double T[4][4] = {
+   {1 - delta, delta, 0, 0},
+   {0, 0, 1, 0},
+   {0, 0, 0, 1},
+   {alpha, beta, 0, 1 - alpha - beta}
 };
 /*
 double T[7][7] = {
@@ -59,51 +52,45 @@ double T[7][7] = {
 // Cols: influenced observation
 // Order: ACGU
 double N[4][4] = {
-    {0.008, 0.008,  0.008,  0.72},
-    {0.008, 0.008,  0.96,   0.008},
-    {0.008, .96,    0.008,  0.28},
-    {0.72,  0.008,  0.28,   0.008},
+    {0, 0,  0,  0.72},
+    {0, 0,  0.96,  0},
+    {0, .96, 0, 0.32},
+    {0.72, 0, 0.32, 0},
 };
 
 // Which states influence which states
 // Rows: influencing state
 // Cols: influenced state
-bool allowedInfs[7][7]{
-    {0, 1, 1, 1, 1, 1, 1},
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0}
+bool allowedInfs[4][4]{
+    {0, 1, 1, 1},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0}
 };
 
 // Probability of starting with each state
-double startProb[7] = {1, 0, 0, 0, 0, 0, 0};
+double startProb[4] = {1, 0, 0, 0};
 
 // Which end-states are allowed (1 is allowed, 0 is disallowed)
-bool endState[7] = {1, 0, 0, 1, 0, 0, 1};
+bool endState[4] = {1, 0, 0, 1};
 
 // Affiliations
-// Row # is affiliated with col #
-bool aff[7][7] = {
-    {0, 0, 0, 0, 0, 0, 0}, 
-    {0, 0, 0, 0, 0, 0, 0}, 
-    {0, 1, 0, 0, 0, 0, 0}, 
-    {0, 0, 1, 1, 0, 0, 0}, 
-    {0, 0, 0, 0, 0, 0, 0}, 
-    {0, 0, 0, 0, 1, 0, 0}, 
-    {0, 0, 0, 0, 0, 1, 1}  
+// Row # is affiliated with col #. Row# influence must be next to col#
+bool aff[4][4] = {
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 1, 0, 0},
+    {0, 0, 1, 1},
 };
 
 vector<string> observationKey{"A", "C", "G", "U"};
-vector<string> stateKey{"S", "Q1", "Q2", "Q3", "P1", "P2", "P3"};
+vector<string> stateKey{"L", "P", "Q", "R"};
 
 // A : 0
 // C : 1
 // G : 2
 // U : 3
-vector<int> O{1,1,1,0,1,1,1,0,0,0,0,2,2,2,2,2,2};
+vector<int> O{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1,1, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2};
 
 const int numStates = sizeof(T)/sizeof(T[0]);
 const int numSteps = O.size();
@@ -111,7 +98,7 @@ const int numSteps = O.size();
 bool validInf(vector<vector<vector<int>>> &influence, int ingState, int edState, int ingStep, int edStep){
      // Get current influence path
     // Contains which steps are influencing or influenced 
-    vector<int> path = influence[type[ingState]][type[edState]];
+    vector<int> path = influence[ingState][edState];
 
     // Check if influenced is allowed. If not, return false.
     if (!allowedInfs[ingState][edState]){
@@ -347,7 +334,7 @@ int main(){
             
         }
         path[j-1]= stateKey[r];
-        cout << j << " " << r << " "<< l << " " << c << "\n";
+        //cout << j << " " << r << " "<< l << " " << c << "\n";
         longest = max(longest, (int)stateKey[r].length());
         next_path = choice[j][r][l][c];
         
@@ -358,6 +345,9 @@ int main(){
     string actualO = "";
     for (auto x : observationKey){
         longest = max(longest, (int)x.length());
+    }
+    if (longest == 1){
+        longest = 0;
     }
 
     for (auto x : O){
